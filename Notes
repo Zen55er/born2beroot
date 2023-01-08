@@ -1,0 +1,141 @@
+VER O README DA ANGELA NO B2BR
+
+Debian
+
+Aptitude vs APT (Advanced Packaging Tool)
+	both handle package management (install, remove, search, etc)
+	APT
+		finds package, checks dependencies, sorts and installs them before the package.
+	DIfferences
+		APT is low level while Aptitude is high level
+		Aptitude can integrate funcionalities from APT
+		Aptitude has more functionalities
+		APT can only be used in command line, Aptitude also has a UI
+		Aptitude has better package management
+		Aptitude automatically removes unused packages while unninstalling, APT needs to be told to do  it
+		Aptitude has a why/why-not command to understand blocked actions
+		APT would fial to resolve the conflict while Aptitude can suggest measures to resolve them
+		In conclusion: Aptitude is better
+
+SELinux (security enhanced linux)
+	Uses Mandatory Access Control (MAC) instead of Discretionary Access Control (DAC)
+	In DAC a user has full control over programs/files/folders that belong to it, but root user can acces everything
+	In MAC security policies are defined by the admin and the system has full control
+		These policies dictate which users have access to which programs/files/folders
+
+AppArmor
+	Adds mandatory access control (MAC)
+	Restricts actions in some apps to mitigate damage
+
+SSH (use port 4242)
+	set up new account and assign to a group
+	Secure Shell Protocol
+	allows secure access to a pc in a unsecured network
+	cryptographic network protocol for operating network services securely over an unsecured network
+	needs a SSH server and a SSH client
+	Transport layer gives server authentication
+	User authentication protocol validates user to the server
+	connection protocol multiplexes encrypted tunnel into mltiple logical communication channels
+	Uses public-private key pairs for authentication (plus a password)
+
+UFW
+	Uncomplicated firewall
+	gufw - with gui
+	Firewall should only open port 4242
+
+TTY mode
+	TTY is a command to print the file name of the terminal connected to standard input
+	it checks if the output medium is a terminal
+	who command checks how many users are connected
+
+LVM (Logical Volume Management)
+	Volume Group - list of physical and logical volumes
+	Physical Volumes - disks
+	Logical Volumes - partitions (but have names rather than numbers)
+	LVM can be used while system is running
+
+IPV4 and MAC addresses
+	Use ifconfig to find all addresses, filter to get only the necessary ones
+
+Install and configure sudo (https://www.techrepublic.com/article/how-to-install-sudo-on-a-debian-minimal-server/)
+	Authentication using sudo is limited to 3 tries if using wrong password
+	add message when password is wrong
+	sudo actions need to be archived (input and output)
+		save log file in /var/log/sudo/
+	TTY mode needs to be enabled
+	restrict paths for sudo
+		/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
+
+VM hostname is gacorrei42 (modified in eval) (hostnamectl set-hostname {name-here})
+
+Use strong password policy
+	expires every 30 days
+	minimum 2 days to allow password editing
+	user gets warning message 7 days before password expires
+	10 chars, 1 UPPER, 1 lower, 1 number, max 3 consecutive identical chars
+	can't include username
+	must have 7 chars that are not in previous password (not applicable for root password)
+
+Besides root user, add another with my username (must belong to sudo and user42 groups)
+
+After setting config files, change all passwords including root
+
+Create monitoring.sh script using bash that displays this info on all terminals every 10 min
+	OS architecture and kernel version
+	number of physical processors
+	number of virtual processors
+	current available ram on server and use %
+	current available memory on server and use %
+	current use % of processors
+	date/time of last reboot
+	LVM active/inactive
+	number of active connections
+	number of users in the server
+	server's IPV4 and MAC address
+	number of sudo executed commands
+
+wall (write all)
+	displays messages on every terminal
+	test
+		wall "test"
+	to remove banner (optional)
+		wall -n
+	to read message from a file
+		wall file
+
+CRON
+Time based job scheduling
+check if enabled
+	sudo systemctl status cron.service
+if not do
+	sudo systemctl enable cron.service
+need root priveleges to create job
+apt-get update
+apt-get install cron
+open with
+	sudo crontab -e
+	to make the script run every 10 min and after reboot (after a 60s delay)
+		*/10 * * * * /script_path
+		@reboot sleep 60 && path_to_script
+check list of jobs
+	crontab -l
+
+USING BOTH TOGETHER
+	file with path_to_wall script_path for cron to run (cron executes wall)
+		#!/bin/bash
+		*/10 * * * * /script_path
+		@reboot sleep 60 && path_to_script
+		fi
+	first script
+		#!/bin/bash
+		/usr/sbin/wall monitoring_sript_FULL_path
+		fi
+
+BONUS
+set up partitions
+wordpress website
+	lightpd
+	MariaDB
+	PHP
+set up useful service (justify in defense)
+can open more ports while following UFW rules

@@ -1,0 +1,127 @@
+(SAVE ALL PASSWORDS!!!!)
+
+Mandatory
+Installing VM
+	https://www.debian.org/download
+	"NEW" to create
+	Choose name
+	Machine Folder section
+		select the /nfs/sgoinfre/<your_user> directory
+		In Type select Linux
+		In Version select Debian
+	VM Settings
+		Network
+			change field "Attached to:" to Bridge adapter
+
+Installing sudo
+	Switch to root (su -)
+	apt-get install sudo
+	add user to sudo group
+		usermod -aG sudo YOUR_USERNAME
+	Create sudo folder and log file
+		in /var/log
+			sudo mkdir sudo
+			in /var/log/sudo
+				sudo touch sudo_archive.log
+				check if user was added correctly
+					getent group sudo
+	Access config file (sudo visudo) and add lines
+		Defaults    passwd_tries=3
+		Defaults    badpass_message="Wrong password, try again"
+		Defaults    logfile=/var/log/sudo/sudo_archive.log
+		Defaults    log_input, log_output
+		Defaults    requiretty
+		Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+		gacorrei42    ALL=(ALL:ALL) ALL
+|
+Create group and add users
+	create group user42
+		sudo addgroup user42
+	add to group
+		sudo adduser gacorrei42 user42
+		sudo adduser gacorrei42 sudo
+	check ok
+		getent group sudo
+		getent group user42
+create new user
+	adduser <username>
+
+Open SSH
+	apt-get install openssh-server
+	file /etc/ssh/sshd_config
+		switch Port 22 to Port 4242
+		PermitRootLogin prohibit-password to PermitRootLogin no
+	Check if all is ok
+		sudo service ssh restart
+		sudo service ssh status
+
+UFW
+	apt-get install ufw
+	Check if active
+		sudo ufw status
+	Use port 4242
+		sudo ufw allow 4242
+	Check all ok
+		sudo ufw enable
+		sudo ufw status	
+
+Password checks
+	apt-get install libpam-pwquality
+	/etc/pam.d/common-password
+		password    requisite       pam_quality.so  retry=3 difok=7 minlen=10 dcredit=-1 ucredit=-1 lcredit=-1 maxrepeat=3 enforce_for_root reject_username
+	/etc/login.defs
+		    PASS_MAX_DAYS   30
+    		PASS_MIN_DAYS   2
+	Apply rules for all existing users
+		sudo nano /etc/shadow
+			change lines for root and other users
+				:0:99999:7::: to 
+				:2:30:7:::
+
+ALREADY INSTALLED BY DEFAULT
+IPROUTE2 (https://linoxide.com/iproute2-vs-net-tools/)
+ apt-get install iproute2
+ Check IP address (will be in inet line)
+	ip addr
+
+Changing VM hostname
+	check if dbus is active
+		sudo systemctl status dbus.service dbus.socket
+	if not
+		sudo systemctl start dbus.service dbus.socket
+	sudo hostnamectl set-hostname <new_name>
+		reboot after changing to take effect (reboot) (DOES NOT SEEM TO BE NECESSARY)
+
+Script
+	#!/bin/bash
+		echo "#Architecture: $(uname -a)"
+		echo "#CPU physical: $(lscpu -p=CORE | grep -v '^#' | uniq | wc -l)"
+		echo "#vCPU: $(lscpu -p=CORE | grep -v '^#' | wc -l)"
+		echo "#Memory Usage: $(free --mega | grep Mem | awk '{ printf("%i/%iMB (%.2f%%)\n", $3, $2, $3 / $2 * 100) }')"
+		echo "#Disk Usage: $(df -h --total | grep total | awk '{printf("%i/%iGb (%i%%)\n", $3, $2, $5)}')"
+		echo "#CPU load: $(top -bn1 | grep %Cpu | awk '{printf("%s\n", $7)}' | cut -c 4- | awk '{printf("%.1f%%\n", 100.0 - $1)}')"
+		echo "#Last boot: $(who -b | awk '{printf("%s %s\n", $3, $4)}')"
+		if grep -q /dev/mapper /etc/fstab
+		then
+			echo "#LVM use: yes"
+		else
+			echo "#LVM use: no"
+		fi
+		echo "#Connection TCP: $(ss -at dport = :4242 or sport = :4242 | grep -v ^State | wc -l) ESTABLISHED"
+		echo "#User log: $(getent passwd | wc -l)"
+		echo "#Network: IP $(ip route list | grep -v ^d | awk '{print($9)}') ($(ip addr show | grep link/ether | awk '{print ($2)}'))"
+		echo "#Sudo: $(cat /var/log/sudo/sudo_archive.log | wc -l) cmd"
+
+Bonus
+Partitions
+	Config
+		500M - Primary - Beginning - Ext4 - /boot
+		max - Logical - physical volume for encryption
+	Configure the encrypted volumes
+		Choose encryption password (SAVE IT!!!!)
+	Configure the Logical Volume Manager
+		Create volume group
+    	Choose a name for your vg
+    	Select the encrypted partition
+    	Create the logical volumes
+    	Format the logical volumes accordingly
