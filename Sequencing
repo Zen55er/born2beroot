@@ -110,7 +110,7 @@ Script
 		echo "#Connection TCP: $(ss -at dport = :4242 or sport = :4242 | grep -v ^State | wc -l) ESTABLISHED"
 		echo "#User log: $(getent passwd | wc -l)"
 		echo "#Network: IP $(ip route list | grep -v ^d | awk '{print($9)}') ($(ip addr show | grep link/ether | awk '{print ($2)}'))"
-		echo "#Sudo: $(cat /var/log/sudo/sudo_archive.log | wc -l) cmd"
+		echo "#Sudo: $(journalctl -COMM=sudo | grep COMMAND | wc -l) cmd"
 
 Bonus
 Partitions
